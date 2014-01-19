@@ -12,10 +12,11 @@ class Autorating
   AGE_INFLUENCE = 1
 
   def initialize
+    @data = DB[:rating]
     @mpd = MPD.new('localhost', 6600, callbacks: true)
     mpd.connect
-    @data = DB[:rating]
     @id = mpd.current_song.id
+    @last_playtime = mpd.stats[:playtime]
   end
 
   def change_priority
@@ -53,10 +54,14 @@ class Autorating
       mpd.song_priority(255, x)
     end
   end
-end
 
-rating_controller = Autorating.new
-rating_controller.mpd.on :nextsong do |next_song|
-  rating_controller.change_priority
-  rating_controller.id = next_song
+  def track_priority
+    loop do
+      next_song = mpd.current_song.id
+      (sleep 1; next) if next_song == id
+      p next_song
+      change_priority
+      @id = next_song
+    end
+  end
 end
