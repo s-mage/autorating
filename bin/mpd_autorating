@@ -13,4 +13,9 @@ OptionParser.new do |opts|
   opts.on('-i', '--initialize', 'initialize playlist') do
     rating_controller.initialize_playlist
   end
+  
+  opts.on_tail('-h', '--help', 'show this message') do
+    puts opts
+    exit
+  end
 end.parse!
