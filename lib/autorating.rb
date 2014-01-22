@@ -3,17 +3,16 @@ require 'sequel'
 
 class Autorating
   attr_accessor :mpd, :last_playtime, :id
-  attr_reader :data
+  attr_reader :data, :skip_influence, :age_influence
 
   CONFIG_FILE = File.expand_path '~/.config/mpd_autorating'
   DB = Sequel.sqlite CONFIG_FILE
 
-  SKIP_INFLUENCE = 0.2
-  AGE_INFLUENCE = 1
-
-  def initialize
+  def initialize(host = 'localhost', port = 6600, skip_inf = 0.2, age_inf = 1)
+    @skip_influence = skip_inf
+    @age_influence = age_inf
     @data = DB[:rating]
-    @mpd = MPD.new('localhost', 6600, callbacks: true)
+    @mpd = MPD.new(host, port, callbacks: true)
     mpd.connect
     @id = mpd.current_song.id
     @last_playtime = mpd.stats[:playtime]
@@ -28,14 +27,14 @@ class Autorating
 
   def change_age_rate
     listen_count = data[id: id][:listen_count] + 1
-    age_rate = 1 / Math.log10(10 + AGE_INFLUENCE * listen_count)
+    age_rate = 1 / Math.log10(10 + age_influence * listen_count)
     data.where(id: id).update(listen_count: listen_count, age_rating: age_rate)
     age_rate
   end
 
   def change_skip_rate
     old_rate = data[id: id][:skip_rating]
-    new_rate = old_rate * (1 - SKIP_INFLUENCE * (1 - skip_rate))
+    new_rate = old_rate * (1 - skip_influence * (1 - skip_rate))
     data.where(id: id).update(skip_rating: new_rate)
     new_rate
   end
