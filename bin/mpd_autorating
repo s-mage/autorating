@@ -3,15 +3,31 @@
 require 'optparse'
 require_relative '../lib/autorating'
 
-rating_controller = Autorating.new
+options, methods = {}, []
 
 OptionParser.new do |opts|
   opts.on('-d', '--daemon', 'run as daemon') do
-    rating_controller.track_priority
+    methods << :track_priority
   end
 
   opts.on('-i', '--initialize', 'initialize playlist') do
-    rating_controller.initialize_playlist
+    methods.unshift :initialize_playlist
+  end
+
+  opts.on('-h', '--host [HOST]', 'set host') do |host|
+    options[:host] = host
+  end
+  
+  opts.on('-p', '--port [PORT]', Float, 'set port') do |port|
+    options[:port] = port
+  end
+  
+  opts.on('-s', '--skip_influence [INFLUENCE]', Float, 'set skip influence') do |skip|
+    options[:skip_influence] = skip_influence
+  end
+  
+  opts.on('-a', '--age_influence [INFLUENCE]', 'set age influence') do |age|
+    options[:age_influence] = age_influence
   end
   
   opts.on_tail('-h', '--help', 'show this message') do
@@ -19,3 +35,6 @@ OptionParser.new do |opts|
     exit
   end
 end.parse!
+
+rating_controller = Autorating.new(options)
+methods.each { |x| rating_controller.send x }

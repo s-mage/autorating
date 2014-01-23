@@ -8,9 +8,10 @@ class Autorating
   CONFIG_FILE = File.expand_path '~/.config/mpd_autorating'
   DB = Sequel.sqlite CONFIG_FILE
 
-  def initialize(host = 'localhost', port = 6600, skip_inf = 0.2, age_inf = 1)
-    @skip_influence = skip_inf
-    @age_influence = age_inf
+  def initialize(host: 'localhost', port: 6600, skip_influence: 0.2,
+    age_influence: 1)
+    @skip_influence = skip_influence
+    @age_influence = age_influence
     @data = DB[:rating]
     @mpd = MPD.new(host, port, callbacks: true)
     mpd.connect
