@@ -49,9 +49,11 @@ class Autorating
   end
 
   def initialize_playlist
-    mpd.status[:playlistlength].times do |x|
-      data.insert(listen_count: 0, skip_rating: 1, age_rating: 1)
-      mpd.song_priority(255, x)
+    DB.transaction do
+      mpd.status[:playlistlength].times do |x|
+        data.insert(listen_count: 0, skip_rating: 1, age_rating: 1)
+        mpd.song_priority(255, x)
+      end
     end
   end
 
