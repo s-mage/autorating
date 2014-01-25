@@ -49,10 +49,12 @@ class Autorating
   end
 
   def initialize_playlist
-    DB.transaction do
-      mpd.status[:playlistlength].times do |x|
-        data.insert(listen_count: 0, skip_rating: 1, age_rating: 1)
-        mpd.song_priority(255, x)
+    mpd.status[:playlistlength].times.each_slice(1000) do |slice|
+      DB.transaction do
+        slice.each do |x|
+          data.insert(listen_count: 0, skip_rating: 1, age_rating: 1)
+          mpd.song_priority(255, x)
+        end
       end
     end
   end
@@ -61,9 +63,11 @@ class Autorating
     loop do
       next_song = mpd.current_song.id
       (sleep 1; next) if next_song == id
-      p next_song
-      change_priority
-      @id = next_song
+      pid = Process.fork do
+        change_priority
+        @id = next_song
+      end
+      Process.waitpid pid
     end
   end
 end
