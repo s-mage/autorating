@@ -12,6 +12,7 @@ OptionParser.new do |opts|
   end
 
   opts.on('-i', '--initialize', 'initialize playlist') do
+    require_relative '../lib/autorating/db_schema'
     methods.unshift :initialize_playlist
   end
 
